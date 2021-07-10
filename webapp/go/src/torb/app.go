@@ -266,12 +266,14 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 			return nil, err
 		}
 		for _, s := range event.Sheets[reservation.SheetRank].Detail {
-			s.Mine = reservation.UserID == loginUserID
-			s.Reserved = true
-			s.ReservedAtUnix = reservation.ReservedAt.Unix()
-			event.Remains--
-			event.Sheets[reservation.SheetRank].Remains--
-			break
+			if reservation.SheetID == s.ID {
+				s.Mine = reservation.UserID == loginUserID
+				s.Reserved = true
+				s.ReservedAtUnix = reservation.ReservedAt.Unix()
+				event.Remains--
+				event.Sheets[reservation.SheetRank].Remains--
+				break
+			}
 		}
 	}
 	rows.Close()
