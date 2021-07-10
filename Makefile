@@ -3,7 +3,7 @@ all: gogo
 
 app:
 	cd /home/isucon/isucon-practice-20210710/webapp/go
-	go build -o app
+	GOPATH=`pwd`:`pwd`/vendor go build -v torb
 
 gogo:
 	sudo systemctl stop h2o.service
@@ -14,11 +14,11 @@ gogo:
 	sudo systemctl start torb.go.service
 	sudo systemctl start h2o.service
 	sleep 2
-	make bench
+	# make bench
 
 bench:
-	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 /home/isucon/torb/bench/bin/bench -remotes=35.74.254.73 -output result.json
-	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 jq . < result.json
+	# ssh -i ~/.ssh/id_rsa centos@54.168.238.28 sudo su - isucon && cd /home/isucon/
+	# ssh -i ~/.ssh/id_rsa centos@54.168.238.28 sudo jq . < result.json
 
 slow-log:
 	# sudo truncate --size 0 /home/mysql-slow.sql
