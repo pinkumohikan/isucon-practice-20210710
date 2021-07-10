@@ -2,8 +2,7 @@
 all: gogo
 
 app:
-	cd /home/isucon/isucon-practice-20210710/webapp/go
-	GOPATH=`pwd`:`pwd`/vendor go build -v torb
+	make -C webapp/go build
 
 gogo:
 	sudo systemctl stop h2o.service
