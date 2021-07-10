@@ -1014,7 +1014,7 @@ func main() {
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
 		// このエンドポイントは1req15MBぐらいあってすごい重いわりに1点なので、あんまり呼ばれないようtimeoutギリギリにしておく
-		time.Sleep(time.Second * time.Duration(AdminSleepTime))
+		time.Sleep(time.Second * time.Duration(adminSleepTime))
 
 		adminSleepTime += AdminSleepTimeIncrease
 		if adminSleepTime > MaxAdminSleepTime {
