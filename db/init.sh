@@ -21,3 +21,4 @@ mysql -uisucon torb  -h172.31.25.227 -pRB*Cm7Yre.KZ-dTx4djh@k.x -e 'ALTER TABLE 
 
 mysql -uisucon  torb  -h172.31.25.227 -pRB*Cm7Yre.KZ-dTx4djh@k.x -e 'alter table `reservations` add index (`sheet_id`);'
 mysql -uisucon  torb -h172.31.25.227 -pRB*Cm7Yre.KZ-dTx4djh@k.x -e 'alter table `reservations` add index (`user_id`);'
+mysql -uisucon  torb -h172.31.25.227 -pRB*Cm7Yre.KZ-dTx4djh@k.x -e 'alter table `reservations` add index (`event_id`,`canceled_at`);'

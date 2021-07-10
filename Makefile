@@ -10,7 +10,7 @@ gogo:
 	ssh centos@172.31.25.227  "sudo systemctl stop mysqld"
 	sudo truncate --size 0 /var/log/h2o/access.log
 	sudo truncate --size 0 /var/log/h2o/error.log
-	sudo truncate --size 0 /var/lib/mysql/mysql-slow.log
+	ssh centos@172.31.25.227  "sudo truncate --size 0 /var/lib/mysql/mysql-slow.log"
 	sudo truncate --size 0 /var/log/mariadb/mariadb.log
 	$(MAKE) app
 	ssh centos@172.31.25.227 "sudo systemctl start mysqld"
@@ -24,8 +24,9 @@ bench:
 	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 "cd /home/centos/torb/bench && jq . < result.json"
 
 slow-log:
-	sudo cp /var/lib/mysql/mysql-slow.log /tmp/mysql-slow.log
-	sudo chmod 777 /tmp/mysql-slow.log
+	ssh centos@172.31.25.227 "sudo cp /var/lib/mysql/mysql-slow.log /tmp/mysql-slow.log"
+	ssh centos@172.31.25.227 "sudo chmod 777 /tmp/mysql-slow.log"
+	scp centos@172.31.25.227:/tmp/mysql-slow.log ./
 
 kataribe:
 	sudo cp /var/log/h2o/access.log /tmp/last-access.log && sudo chmod 666 /tmp/last-access.log
