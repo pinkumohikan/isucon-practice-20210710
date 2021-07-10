@@ -1,17 +1,16 @@
 .PHONY: gogo all app bench slow-log kataribe
-all: app
+all: gogo
 
 app:
 	cd /home/isucon/isucon-practice-20210710/webapp/go
 	go build -o app
-	cd /home/isucon/isucon-practice-20210710/
 
 gogo:
 	sudo systemctl stop h2o.service
 	sudo systemctl stop torb.go.service
-	sudo truncate --size 0 /var/log/nginx/access.log
-	sudo truncate --size 0 /var/log/mysql/mysql-slow.sql
-	$(MAKE) all
+	sudo truncate --size 0 /var/log/h2o/access.log
+	# sudo truncate --size 0 /var/log/mysql/mysql-slow.sql
+	$(MAKE) app
 	sudo systemctl start torb.go.service
 	sudo systemctl start h2o.service
 	sleep 2
@@ -27,6 +26,6 @@ slow-log:
 	# chown ubuntu /home/mysql-slow.sql
 
 kataribe:
-	sudo cp /var/log/nginx/access.log /tmp/last-access.log && sudo chmod 666 /tmp/last-access.log
+	sudo cp /var/log/h2o/access.log /tmp/last-access.log && sudo chmod 666 /tmp/last-access.log
 	cat /tmp/last-access.log | ./kataribe -conf kataribe.toml > /tmp/kataribe.log
 	cat /tmp/kataribe.log
