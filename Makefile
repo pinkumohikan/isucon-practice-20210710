@@ -25,8 +25,8 @@ bench:
 	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 jq . < result.json
 
 slow-log:
-	sudo cp /var/lib/mysql/mysql-slow.log /tmp/mysql-slow.sql
-	sudo chmod 777 /tmp/mysql-slow.sql
+	sudo cp /var/lib/mysql/mysql-slow.log /tmp/mysql-slow.log
+	sudo chmod 777 /tmp/mysql-slow.log
 
 kataribe:
 	sudo cp /var/log/h2o/access.log /tmp/last-access.log && sudo chmod 666 /tmp/last-access.log
