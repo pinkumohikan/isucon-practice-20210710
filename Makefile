@@ -13,9 +13,12 @@ gogo:
 	ssh centos@172.31.25.227  "sudo truncate --size 0 /var/lib/mysql/mysql-slow.log"
 	sudo truncate --size 0 /var/log/mariadb/mariadb.log
 	$(MAKE) app
+	scp -C -i ~/.ssh/id_rsa webapp/go/torb centos@172.31.17.234:~/
+	ssh centos@172.31.17.234 "sudo cp torb /home/isucon/torb/webapp/go/"
 	ssh centos@172.31.25.227 "sudo systemctl start mysqld"
 	sudo systemctl start torb.go.service
-	sudo systemctl start h2o.service
+	ssh centos@172.31.17.234 "sudo systemctl start torb.go.service"
+	sudo systemctl start h2o
 	sleep 2
 	$(MAKE) bench
 
