@@ -231,8 +231,18 @@ func makePlaceholder(len int) string {
 	return placeholder
 }
 
+func int64ToInterface(values []int64) []interface{} {
+	var ret []interface{}
+
+	for _, v := range values {
+		ret = append(ret, v)
+	}
+
+	return ret
+}
+
 func getEventsByIds(eventIDs []int64, loginUserID int64) ([]*Event, error) {
-	rows, err := db.Query(fmt.Sprintf("SELECT * FROM events WHERE id in (%s)", makePlaceholder(len(eventIDs))), eventIDs)
+	rows, err := db.Query(fmt.Sprintf("SELECT * FROM events WHERE id in (%s)", makePlaceholder(len(eventIDs))), int64ToInterface(eventIDs)...)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +298,7 @@ func getEventsByIds(eventIDs []int64, loginUserID int64) ([]*Event, error) {
 	}
 	rows.Close()
 
-	rows, err = db.Query(fmt.Sprintf("SELECT r.*, s.id, s.rank FROM reservations as r inner join sheets as s on s.id = r.sheet_id WHERE r.event_id in (%s) AND r.canceled_at IS NULL GROUP BY r.event_id, r.sheet_id HAVING r.reserved_at = MIN(r.reserved_at)", makePlaceholder(len(events))), eventIDs)
+	rows, err = db.Query(fmt.Sprintf("SELECT r.*, s.id, s.rank FROM reservations as r inner join sheets as s on s.id = r.sheet_id WHERE r.event_id in (%s) AND r.canceled_at IS NULL GROUP BY r.event_id, r.sheet_id HAVING r.reserved_at = MIN(r.reserved_at)", makePlaceholder(len(events))), int64ToInterface(eventIDs)...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = nil
