@@ -13,8 +13,7 @@ gogo:
 	sudo truncate --size 0 /var/lib/mysql/mysql-slow.log
 	sudo truncate --size 0 /var/log/mariadb/mariadb.log
 	$(MAKE) app
-	mysql -uisucon torb -e 'alter table `reservations` add index (`sheet_id`);'
-	ssh centos@172.31.25.227 "sudo systemctl start mysql"
+	ssh centos@172.31.25.227 "sudo systemctl start mysqld"
 	sudo systemctl start torb.go.service
 	sudo systemctl start h2o.service
 	sleep 2
