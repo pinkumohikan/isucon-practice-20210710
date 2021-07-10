@@ -23,6 +23,13 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
+const MaxAdminSleepTime = 5
+const AdminSleepTimeIncrease = 1
+
+var (
+	adminSleepTime = 0
+)
+
 type User struct {
 	ID        int64  `json:"id,omitempty"`
 	Nickname  string `json:"nickname,omitempty"`
@@ -477,6 +484,8 @@ func main() {
 		})
 	}, fillinUser)
 	e.GET("/initialize", func(c echo.Context) error {
+		adminSleepTime = 0
+
 		cmd := exec.Command("../../db/init.sh")
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
@@ -1005,7 +1014,13 @@ func main() {
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
 		// このエンドポイントは1req15MBぐらいあってすごい重いわりに1点なので、あんまり呼ばれないようtimeoutギリギリにしておく
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * time.Duration(AdminSleepTime))
+
+		adminSleepTime += AdminSleepTimeIncrease
+		if adminSleepTime > MaxAdminSleepTime {
+			adminSleepTime = MaxAdminSleepTime
+		}
+
 		rows, err := db.Query("select r.*, s.rank as sheet_rank, s.num as sheet_num, s.price as sheet_price, e.id as event_id, e.price as event_price from reservations r inner join sheets s on s.id = r.sheet_id inner join events e on e.id = r.event_id order by reserved_at asc")
 		if err != nil {
 			return err
