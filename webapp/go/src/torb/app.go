@@ -261,7 +261,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 
 	// シートごとに予約をくっつけていく
-	for i, sheet := range sheets {
+	for _, sheet := range sheets {
 		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
 		event.Total++
 		event.Sheets[sheet.Rank].Total++
