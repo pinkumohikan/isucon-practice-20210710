@@ -7,13 +7,14 @@ app:
 gogo:
 	sudo systemctl stop h2o.service
 	sudo systemctl stop torb.go.service
-	sudo systemctl stop mariadb
+	ssh centos@172.31.25.227  "sudo systemctl stop mysqld"
 	sudo truncate --size 0 /var/log/h2o/access.log
 	sudo truncate --size 0 /var/log/h2o/error.log
 	sudo truncate --size 0 /var/lib/mysql/mysql-slow.log
 	sudo truncate --size 0 /var/log/mariadb/mariadb.log
 	$(MAKE) app
-	sudo systemctl start mariadb
+	mysql -uisucon torb -e 'alter table `reservations` add index (`sheet_id`);'
+	ssh centos@172.31.25.227 "sudo systemctl start mysql"
 	sudo systemctl start torb.go.service
 	sudo systemctl start h2o.service
 	sleep 2
