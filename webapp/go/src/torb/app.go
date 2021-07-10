@@ -210,6 +210,7 @@ func getEvents(all bool) ([]*Event, error) {
 		events = append(events, &event)
 		eventIds = append(eventIds, event.ID)
 	}
+
 	es, err := getEventsByIds(eventIds, -1)
 	if err != nil {
 		return nil, err
@@ -221,7 +222,7 @@ func getEvents(all bool) ([]*Event, error) {
 		}
 	}
 
-	return events, nil
+	return es, nil
 }
 
 func makePlaceholder(len int) string {
