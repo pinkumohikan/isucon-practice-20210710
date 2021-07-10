@@ -251,6 +251,8 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rs.Close()
+
 	var reservations []Reservation
 	for rs.Next() {
 		var reservation Reservation
