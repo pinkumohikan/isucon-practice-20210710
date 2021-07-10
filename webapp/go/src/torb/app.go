@@ -23,11 +23,11 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-const MaxAdminSleepTime = 5
-const AdminSleepTimeIncrease = 1
+const MaxAdminSleepTime = 15.0
+const AdminSleepTimeIncrease = 1.5
 
 var (
-	adminSleepTime = 0
+	adminSleepTime = 0.0
 )
 
 type User struct {
