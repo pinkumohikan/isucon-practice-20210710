@@ -17,7 +17,7 @@ gogo:
 	sudo systemctl start torb.go.service
 	sudo systemctl start h2o.service
 	sleep 2
-	# make bench
+	$(MAKE) bench
 
 bench:
 	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 "cd /home/centos/torb/bench && ./bin/bench -remotes=35.74.254.73 -output result.json"
