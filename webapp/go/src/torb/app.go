@@ -198,6 +198,7 @@ func getEvents(all bool) ([]*Event, error) {
 	defer rows.Close()
 
 	var events []*Event
+	var eventIds []int64
 	for rows.Next() {
 		var event Event
 		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
@@ -207,17 +208,114 @@ func getEvents(all bool) ([]*Event, error) {
 			continue
 		}
 		events = append(events, &event)
+		eventIds = append(eventIds, event.ID)
 	}
-	for i, v := range events {
-		event, err := getEvent(v.ID, -1)
-		if err != nil {
+	es, err := getEventsByIds(eventIds, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range es {
+		for k := range e.Sheets {
+			e.Sheets[k].Detail = nil
+		}
+	}
+
+	return events, nil
+}
+
+func makePlaceholder(len int) string {
+	placeholder := "?"
+	placeholder += strings.Repeat(",?", len-1)
+
+	return placeholder
+}
+
+func getEventsByIds(eventIDs []int64, loginUserID int64) ([]*Event, error) {
+	rows, err := db.Query(fmt.Sprintf("SELECT * FROM events WHERE id in (%s)", makePlaceholder(len(eventIDs))), eventIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	events := make([]*Event, len(eventIDs))
+	var eventsMap = map[int64]*Event{}
+	for rows.Next() {
+		var event Event
+		if err := rows.Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
 			return nil, err
 		}
-		for k := range event.Sheets {
-			event.Sheets[k].Detail = nil
+
+		event.Sheets = map[string]*Sheets{
+			"S": &Sheets{},
+			"A": &Sheets{},
+			"B": &Sheets{},
+			"C": &Sheets{},
 		}
-		events[i] = event
+
+		n := func() int64 {
+			for i, eID := range eventIDs {
+				if eID == event.ID {
+					return int64(i)
+				}
+			}
+
+			panic("該当するイベントが無いやんけ")
+		}()
+		events[n] = &event
+		eventsMap[event.ID] = &event
 	}
+	rows.Close()
+
+	rows, err = db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var sheet Sheet
+		if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+			return nil, err
+		}
+
+		for _, e := range events {
+			e.Sheets[sheet.Rank].Price = e.Price + sheet.Price
+			e.Total++
+			e.Remains++
+			e.Sheets[sheet.Rank].Total++
+			e.Sheets[sheet.Rank].Remains++
+			e.Sheets[sheet.Rank].Detail = append(e.Sheets[sheet.Rank].Detail, &sheet)
+		}
+	}
+	rows.Close()
+
+	rows, err = db.Query(fmt.Sprintf("SELECT r.*, s.id, s.rank FROM reservations as r inner join sheets as s on s.id = r.sheet_id WHERE r.event_id in (%s) AND r.canceled_at IS NULL GROUP BY r.event_id, r.sheet_id HAVING r.reserved_at = MIN(r.reserved_at)", makePlaceholder(len(events))), eventIDs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = nil
+		} else {
+			return nil, err
+		}
+	}
+	for rows.Next() {
+		var reservation Reservation
+		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.SheetID, &reservation.SheetRank); err != nil {
+			return nil, err
+		}
+
+		e := eventsMap[reservation.EventID]
+		for _, s := range e.Sheets[reservation.SheetRank].Detail {
+			if s.ID == reservation.SheetID {
+				s.Mine = reservation.UserID == loginUserID
+				s.Reserved = true
+				s.ReservedAtUnix = reservation.ReservedAt.Unix()
+				e.Remains--
+				e.Sheets[s.Rank].Remains--
+				break
+			}
+		}
+	}
+	rows.Close()
+
 	return events, nil
 }
 
