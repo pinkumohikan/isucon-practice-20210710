@@ -252,14 +252,14 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 	rows.Close()
 
-	rows, err = db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID)
+	rows, err = db.Query("SELECT r.*, s.id, s.num, s.rank FROM reservations as r inner join sheets as s on r.sheet_id = s.id WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
 		var reservation Reservation
-		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt, &reservation.ID, &reservation.SheetNum, &reservation.SheetRank); err != nil {
 			return nil, err
 		}
 		for _, s := range event.Sheets[reservation.SheetRank].Detail {
