@@ -267,7 +267,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		}
 
 		for _, s := range event.Sheets[reservation.SheetRank].Detail {
-			if s.ID == reservation.ID {
+			if s.ID == reservation.SheetID {
 				s.Mine = reservation.UserID == loginUserID
 				s.Reserved = true
 				s.ReservedAtUnix = reservation.ReservedAt.Unix()
