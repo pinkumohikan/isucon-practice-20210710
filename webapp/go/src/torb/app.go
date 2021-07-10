@@ -276,6 +276,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 				sheet.ReservedAtUnix = r.ReservedAt.Unix()
 				event.Remains--
 				event.Sheets[sheet.Rank].Remains--
+				break
 			}
 		}
 
