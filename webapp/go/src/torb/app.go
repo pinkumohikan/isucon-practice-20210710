@@ -252,7 +252,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		return nil, err
 	}
 	defer rs.Close()
-
 	var reservations []Reservation
 	for rs.Next() {
 		var reservation Reservation
@@ -267,16 +266,18 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
 		event.Total++
 		event.Sheets[sheet.Rank].Total++
+		event.Remains++
+		event.Sheets[sheet.Rank].Remains++
 
-		var reservation Reservation
 		for _, r := range reservations {
 			if r.SheetID == sheet.ID {
-				reservation = r
+				sheet.Mine = r.UserID == loginUserID
+				sheet.Reserved = true
+				sheet.ReservedAtUnix = r.ReservedAt.Unix()
+				event.Remains--
+				event.Sheets[sheet.Rank].Remains--
 			}
 		}
-		sheet.Mine = reservation.UserID == loginUserID
-		sheet.Reserved = true
-		sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
 
 		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
 	}
