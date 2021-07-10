@@ -244,7 +244,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 			return nil, err
 		}
-		sheets = append(sheets, seet)
+		sheets = append(sheets, sheet)
 	}
 
 	rs, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID)
@@ -268,7 +268,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 
 		var reservation Reservation
 		for _, r := range reservations {
-			if r.SheetID = sheet.ID {
+			if r.SheetID == sheet.ID {
 				reservation = r
 			}
 		}
