@@ -252,7 +252,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	}
 	rows.Close()
 
-	rows, err = db.Query("SELECT r.*, s.id, s.SheetRank FROM reservations as r inner join sheets as s on s.id = r.sheet_id WHERE r.event_id = ? AND r.canceled_at IS NULL GROUP BY r.event_id, r.sheet_id HAVING r.reserved_at = MIN(r.reserved_at)", event.ID)
+	rows, err = db.Query("SELECT r.*, s.id, s.rank FROM reservations as r inner join sheets as s on s.id = r.sheet_id WHERE r.event_id = ? AND r.canceled_at IS NULL GROUP BY r.event_id, r.sheet_id HAVING r.reserved_at = MIN(r.reserved_at)", event.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = nil
