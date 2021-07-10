@@ -237,7 +237,6 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	var sheets []Sheet
 	for rows.Next() {
 		var sheet Sheet
@@ -246,20 +245,21 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		}
 		sheets = append(sheets, sheet)
 	}
+	rows.Close()
 
-	rs, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID)
+	rows, err = db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID)
 	if err != nil {
 		return nil, err
 	}
-	defer rs.Close()
 	var reservations []Reservation
-	for rs.Next() {
+	for rows.Next() {
 		var reservation Reservation
-		if err := rs.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
 			return nil, err
 		}
 		reservations = append(reservations, reservation)
 	}
+	rows.Close()
 
 	// シートごとに予約をくっつけていく
 	for _, sheet := range sheets {
