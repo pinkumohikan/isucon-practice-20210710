@@ -20,8 +20,8 @@ gogo:
 	# make bench
 
 bench:
-	# ssh -i ~/.ssh/id_rsa centos@54.168.238.28 sudo su - isucon && cd /home/isucon/
-	# ssh -i ~/.ssh/id_rsa centos@54.168.238.28 sudo jq . < result.json
+	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 "cd /home/centos/torb/bench && ./bin/bench -remotes=35.74.254.73 -output result.json"
+	ssh -i ~/.ssh/id_rsa centos@54.168.238.28 "cd /home/centos/torb/bench && jq . < result.json"
 
 slow-log:
 	sudo cp /var/lib/mysql/mysql-slow.log /tmp/mysql-slow.log
