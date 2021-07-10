@@ -23,6 +23,13 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
+const MaxAdminSleepTime = 15.0
+const AdminSleepTimeIncrease = 1.5
+
+var (
+	adminSleepTime = 0.0
+)
+
 type User struct {
 	ID        int64  `json:"id,omitempty"`
 	Nickname  string `json:"nickname,omitempty"`
@@ -477,6 +484,8 @@ func main() {
 		})
 	}, fillinUser)
 	e.GET("/initialize", func(c echo.Context) error {
+		adminSleepTime = 0
+
 		cmd := exec.Command("../../db/init.sh")
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
@@ -721,11 +730,13 @@ func main() {
 			}
 
 			if err := tx.QueryRow("SELECT * FROM sheets WHERE id NOT IN (SELECT sheet_id FROM reservations WHERE event_id = ? AND canceled_at IS NULL) AND `rank` = ? ORDER BY RAND() LIMIT 1 FOR UPDATE", event.ID, params.Rank).Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
+				tx.Rollback()
 				if err == sql.ErrNoRows {
-					tx.Rollback()
 					return resError(c, "sold_out", 409)
 				}
-				return err
+				log.Println("re-try: rollback by", err)
+				time.Sleep(time.Millisecond * 100)
+				continue
 			}
 
 			res, err := tx.Exec("INSERT INTO reservations (event_id, sheet_id, user_id, reserved_at) VALUES (?, ?, ?, ?)", event.ID, sheet.ID, user.ID, time.Now().UTC().Format("2006-01-02 15:04:05.000000"))
@@ -1002,7 +1013,15 @@ func main() {
 		return renderReportCSV(c, reports)
 	}, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", func(c echo.Context) error {
-		rows, err := db.Query("select r.*, s.rank as sheet_rank, s.num as sheet_num, s.price as sheet_price, e.id as event_id, e.price as event_price from reservations r inner join sheets s on s.id = r.sheet_id inner join events e on e.id = r.event_id order by reserved_at asc for update")
+		// このエンドポイントは1req15MBぐらいあってすごい重いわりに1点なので、あんまり呼ばれないようtimeoutギリギリにしておく
+		time.Sleep(time.Second * time.Duration(adminSleepTime))
+
+		adminSleepTime += AdminSleepTimeIncrease
+		if adminSleepTime > MaxAdminSleepTime {
+			adminSleepTime = MaxAdminSleepTime
+		}
+
+		rows, err := db.Query("select r.*, s.rank as sheet_rank, s.num as sheet_num, s.price as sheet_price, e.id as event_id, e.price as event_price from reservations r inner join sheets s on s.id = r.sheet_id inner join events e on e.id = r.event_id order by reserved_at asc")
 		if err != nil {
 			return err
 		}
